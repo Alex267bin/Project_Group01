@@ -4,3 +4,6 @@ sqlalchemy
 alembic
 psycopg2-binary
 pydantic
+python-jose[cryptography]
+pwdlib[argon2]
+pytest

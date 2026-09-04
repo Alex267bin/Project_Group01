@@ -7,3 +7,4 @@ pydantic
 python-jose[cryptography]
 pwdlib[argon2]
 pytest
+qrcode[pil]

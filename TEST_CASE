@@ -1,0 +1,19 @@
+# STUDENT ATTENDANCE SYSTEM - CORE TEST MATRIX
+
+| Test Case ID | Type | Module | Scenario / Mô tả | Kết quả mong đợi | Priority | Status |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **TC-FUNC-01** | Functional | Auth | Đăng nhập tài khoản Sinh viên / Giảng viên | Đăng nhập thành công, chuyển đúng Dashboard theo vai trò | High | Pass |
+| **TC-FUNC-02** | Functional | Auth | Phân quyền truy cập đường dẫn (RBAC) | Chặn Sinh viên truy cập URL `/admin/dashboard` (403 Forbidden) | High | Pass |
+| **TC-FUNC-03** | Functional | Attendance | Giảng viên tạo mã QR động đếm ngược | Mã QR hiển thị và tự động refresh mỗi 5 giây | High | Pass |
+| **TC-FUNC-04** | Functional | Attendance | Sinh viên quét mã QR + Kiểm tra GPS hợp lệ | Ghi nhận "Có mặt", lưu đúng thời gian và tọa độ thực tế | High | Pass |
+| **TC-FUNC-05** | Functional | Attendance | Sinh viên quét mã QR hết hạn hoặc ở ngoài lớp | Báo lỗi "Mã QR hết hạn" hoặc "Vị trí không hợp lệ" | High | Pass |
+| **TC-FUNC-06** | Functional | Attendance | Điểm danh khuôn mặt (FaceID) tại Kiosk | Nhận diện đúng SV, chặn ảnh chụp giả mạo (Liveness check) | High | Pass |
+| **TC-FUNC-07** | Functional | Attendance | Giảng viên điều chỉnh trạng thái điểm danh | Cập nhật dữ liệu ngay và ghi nhật ký chỉnh sửa (Audit log) | Medium | Pass |
+| **TC-FUNC-08** | Functional | Leave | Sinh viên gửi đơn xin nghỉ đính kèm PDF | Đơn chuyển trạng thái "Chờ duyệt", gửi thông báo cho Giảng viên | High | Pass |
+| **TC-FUNC-09** | Functional | Leave | Giảng viên duyệt đơn xin nghỉ học | Tự động cập nhật buổi học của SV thành "Nghỉ có phép" | Medium | Pass |
+| **TC-FUNC-10** | Functional | Report | Xuất báo cáo chuyên cần ra file Excel | Tải xuống file `.xlsx` đầy đủ danh sách và tỉ lệ đi học | Medium | Pass |
+| **TC-FUNC-11** | Functional | Admin | Import danh sách sinh viên hàng loạt | Báo lỗi parser khi file có ký tự tiếng Việt có dấu đặc biệt | High | Fail |
+| **TC-NFR-01** | Non-Func | Performance | Chịu tải 1,000 SV quét QR đồng thời | Response time < 1.5s, Tỷ lệ lỗi 0%, CPU < 80% | High | Pass |
+| **TC-NFR-02** | Non-Func | Security | Rà quét an ninh SQL Injection & XSS | Không phát hiện lỗ hổng an ninh trên các REST API | High | Pass |
+| **TC-NFR-03** | Non-Func | Security | Mã hóa dữ liệu khuôn mặt trong Database | Mã hóa AES-256 các vector khuôn mặt, không lưu ảnh thô | High | Pass |
+| **TC-NFR-04** | Non-Func | Reliability | Điểm danh Offline khi mất kết nối mạng | Dữ liệu lưu tạm ở SQLite nội bộ, tự đồng bộ khi có mạng | Medium | Pass |

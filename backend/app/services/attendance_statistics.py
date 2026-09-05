@@ -1,29 +1,28 @@
-from sqlalchemy import select, text
+from datetime import datetime
+
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.models.student import Student
 from app.models.attendance_record import AttendanceRecord, AttendanceStatus
+from app.models.class_room import Class
+from app.models.class_session import ClassSession
+from app.models.student import Student
 
 
 def get_student_statistics(
     db: Session,
     student: Student,
 ):
-    sessions = db.execute(
-        text(
-            """
-            SELECT
-                session_id,
-                course_name,
-                start_time,
-                end_time
-            FROM class_sessions
-            WHERE class_id = :class_id
-            ORDER BY start_time
-            """
-        ),
-        {"class_id": student.class_id},
-    ).mappings().all()
+    sessions = db.scalars(
+        select(ClassSession)
+        .join(Class, Class.class_id == ClassSession.class_id)
+        .where(
+            Class.class_id == student.class_id,
+            ClassSession.end_time.is_not(None),
+            ClassSession.end_time <= datetime.now(),
+        )
+        .order_by(ClassSession.start_time)
+    ).all()
 
     total_sessions = 0
     present_count = 0
@@ -33,19 +32,12 @@ def get_student_statistics(
     details = []
 
     for session in sessions:
-        # Chỉ tính những buổi đã kết thúc
-        if session["end_time"] is not None:
-            from datetime import datetime
-
-            if session["end_time"] > datetime.now():
-                continue
-
         total_sessions += 1
 
         record = db.scalar(
             select(AttendanceRecord).where(
                 AttendanceRecord.student_code == student.student_code,
-                AttendanceRecord.session_id == session["session_id"],
+                AttendanceRecord.session_id == session.session_id,
             )
         )
 
@@ -63,10 +55,10 @@ def get_student_statistics(
 
         details.append(
             {
-                "session_id": session["session_id"],
-                "course_name": session["course_name"],
-                "start_time": session["start_time"],
-                "end_time": session["end_time"],
+                "session_id": session.session_id,
+                "course_name": session.course_name,
+                "start_time": session.start_time,
+                "end_time": session.end_time,
                 "status": status,
             }
         )

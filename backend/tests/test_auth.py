@@ -95,6 +95,21 @@ class AuthenticationTests(unittest.TestCase):
                 require_role(denied_role)(self.user)
             self.assertEqual(context.exception.status_code, 403)
 
+# BỔ SUNG CỦA NHÂN (TESTER)
+    
+    def test_login_non_existent_user(self) -> None:
+        """Kiểm tra ngoại lệ khi đăng nhập bằng tài khoản không tồn tại."""
+        with self.assertRaises(HTTPException) as context:
+            login(LoginRequest(username="ghost_student", password="password123"), self.db)
+        self.assertEqual(context.exception.status_code, 401)
+        self.assertEqual(context.exception.detail, "Incorrect username or password")
+
+    def test_verify_empty_password_fails(self) -> None:
+        """Kiểm tra hệ thống từ chối xác thực nếu mật khẩu bị để rỗng."""
+        password_hash = hash_password("valid-password")
+        self.assertFalse(verify_password("", password_hash))
+        self.assertFalse(verify_password("   ", password_hash))
+
 
 if __name__ == "__main__":
     unittest.main()

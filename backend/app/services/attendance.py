@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from uuid import uuid4
 
 from fastapi import HTTPException, status
@@ -71,12 +71,23 @@ def record_attendance_by_qr(
             detail="Attendance already recorded for this session",
         )
 
+    grace_period_minutes = 15
+    session_start = session.start_time
+    if session_start.tzinfo is None:
+        session_start = session_start.replace(tzinfo=current_time.tzinfo)
+
+    attendance_status = (
+        AttendanceStatus.LATE
+        if current_time > session_start + timedelta(minutes=grace_period_minutes)
+        else AttendanceStatus.PRESENT
+    )
+
     record = AttendanceRecord(
         record_id=str(uuid4()),
         student_code=student.student_code,
         session_id=session_id,
         timestamp=current_time.replace(tzinfo=None),
-        status=AttendanceStatus.PRESENT,
+        status=attendance_status,
     )
 
     db.add(record)

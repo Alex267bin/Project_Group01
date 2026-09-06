@@ -1,9 +1,14 @@
-# Issue #6 — UI Screens & Interactive Prototype
+# Issue #7 — Dashboard Frontend
 
-Frontend-only implementation of the Figma-aligned UI for all three roles:
-- Login
-- Student Dashboard
-- Lecturer Dashboard
-- Admin Dashboard
+Build the Figma-aligned dashboard UI against the supplied backend API contract.
 
-This snapshot uses local demo data so the screens can be reviewed without backend changes. Issue #7 replaces the demo API layer with the supplied backend API integration. Camera QR scanning is intentionally left for Issue #8.
+Includes:
+- login/authentication flow
+- Student attendance history and filters
+- Lecturer session activation, QR display/refresh and attendance stream
+- Admin user management UI
+- real API request layer
+
+Camera QR scanning is intentionally delivered in Issue #8.
+
+Only `frontend/` is changed by this issue.

@@ -1,14 +1,12 @@
-# Issue #7 — Dashboard Frontend
+# Issue #8 — Camera QR Scanning
 
-Build the Figma-aligned dashboard UI against the supplied backend API contract.
+Adds camera-based QR attendance scanning to the completed frontend dashboard.
 
 Includes:
-- login/authentication flow
-- Student attendance history and filters
-- Lecturer session activation, QR display/refresh and attendance stream
-- Admin user management UI
-- real API request layer
-
-Camera QR scanning is intentionally delivered in Issue #8.
+- html5-qrcode camera integration
+- scanner modal and camera lifecycle
+- QR payload handling
+- POST to the supplied `/api/v1/attendance/scan` endpoint
+- success/error feedback
 
 Only `frontend/` is changed by this issue.

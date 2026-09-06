@@ -2,6 +2,7 @@ const app = document.getElementById("app");
 
 let selectedRole = "student";
 let currentUser = null;
+let qrScanner = null;
 let qrRefreshTimer = null;
 let activeSession = null;
 let lecturerRows = [];
@@ -124,7 +125,7 @@ function header(user, kind) {
 function bindLogout() {
   document.getElementById("logout-btn")?.addEventListener("click", () => {
     clearQrRefresh();
-    if (typeof stopQrScanner === "function") stopQrScanner();
+    if (qrScanner) stopQrScanner();
     logout();
     loginView();
   });
@@ -283,7 +284,7 @@ function studentView() {
   });
 
   document.getElementById("submit-code")?.addEventListener("click", submitCode);
-  document.getElementById("scan-qr")?.addEventListener("click", () => showInline("student-alert", "info", "QR scanning will be enabled in the camera integration task (#8)."));
+  document.getElementById("scan-qr")?.addEventListener("click", openQrScanner);
   document.getElementById("course-filter")?.addEventListener("change", renderStudentHistory);
   document.getElementById("semester-filter")?.addEventListener("change", renderStudentHistory);
 
@@ -355,6 +356,87 @@ async function submitCode() {
     "info",
     "The 6-digit code UI is ready, but the supplied backend contract does not expose a code-only attendance endpoint. Use Scan QR Code for the currently supported attendance API."
   );
+}
+
+function openQrScanner() {
+  const backdrop = document.createElement("div");
+  backdrop.className = "modal-backdrop";
+  backdrop.id = "qr-modal";
+  backdrop.innerHTML = `
+    <div class="modal-card qr-modal">
+      <button class="modal-close" id="close-qr" aria-label="Close">×</button>
+      <div class="modal-icon">${icons.qr}</div>
+      <h3>Scan Attendance QR Code</h3>
+      <p class="modal-description">Allow camera access and position the lecturer's QR code inside the frame.</p>
+      <div id="qr-reader" class="qr-reader"></div>
+      <div id="qr-status" class="scanner-status">Starting camera…</div>
+      <button class="secondary-btn modal-cancel" id="cancel-qr">Cancel</button>
+    </div>`;
+  document.body.appendChild(backdrop);
+
+  document.getElementById("close-qr").addEventListener("click", stopQrScanner);
+  document.getElementById("cancel-qr").addEventListener("click", stopQrScanner);
+
+  if (typeof Html5Qrcode === "undefined") {
+    document.getElementById("qr-status").textContent = "QR scanner library is unavailable.";
+    return;
+  }
+
+  qrScanner = new Html5Qrcode("qr-reader");
+  qrScanner.start(
+    { facingMode: "environment" },
+    { fps: 10, qrbox: { width: 230, height: 230 } },
+    decodedText => handleQrPayload(decodedText),
+    () => {}
+  ).then(() => {
+    const status = document.getElementById("qr-status");
+    if (status) status.textContent = "Camera active — point it at the attendance QR code.";
+  }).catch(error => {
+    const status = document.getElementById("qr-status");
+    if (status) status.textContent = `Camera could not be started: ${error}`;
+  });
+}
+
+async function handleQrPayload(decodedText) {
+  const status = document.getElementById("qr-status");
+  if (status) status.textContent = "QR detected. Validating…";
+
+  let payload;
+  try {
+    payload = JSON.parse(decodedText);
+  } catch (_) {
+    if (status) status.textContent = "Invalid QR format.";
+    return;
+  }
+
+  if (!payload.session_id || !payload.session_code || !payload.token || payload.timestamp_bucket === undefined) {
+    if (status) status.textContent = "This QR code is not a valid attendance QR.";
+    return;
+  }
+
+  try {
+    await scanAttendance({
+      session_id: String(payload.session_id),
+      session_code: String(payload.session_code),
+      token: String(payload.token),
+      timestamp_bucket: Number(payload.timestamp_bucket)
+    });
+    stopQrScanner();
+    showInline("student-alert", "success", "Attendance submitted successfully.");
+    await loadStudentHistory();
+  } catch (error) {
+    if (status) status.textContent = error.message;
+  }
+}
+
+function stopQrScanner() {
+  if (qrScanner) {
+    qrScanner.stop().catch(() => {}).finally(() => {
+      qrScanner.clear();
+      qrScanner = null;
+    });
+  }
+  document.getElementById("qr-modal")?.remove();
 }
 
 function lecturerView() {

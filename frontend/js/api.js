@@ -89,6 +89,12 @@ async function getAttendanceHistory() {
   return apiRequest("/api/v1/attendance/me");
 }
 
+async function scanAttendance(payload) {
+  return apiRequest("/api/v1/attendance/scan", {
+    method: "POST",
+    body: JSON.stringify(payload)
+  });
+}
 
 async function activateSession(payload) {
   return apiRequest("/api/v1/sessions/activate", {
